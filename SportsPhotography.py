@@ -92,7 +92,6 @@ gamelog = playergamelog.PlayerGameLog(
     player_id = PLAYER_ID, 
     season=CURRENT_SEASON
 )
-
 gamelog_df = gamelog.get_data_frames()[0]
 latest_game_stats = gamelog_df.iloc[0]
 stats_to_show = {
@@ -108,15 +107,21 @@ stats_to_show = {
     'Turnovers': latest_game_stats['TOV']
 }
 for key, value in stats_to_show.items():
-    print(f"{key.ljust(15)}: {value}")
+     print(f"{key.ljust(15)}: {value}")
 
-CURRENT_SEASON = '2024-25'
-gamelog = playergamelog.PlayerGameLog(
-    player_id = PLAYER_ID, 
-    season=CURRENT_SEASON
-)
-gamelog_df = gamelog.get_data_frames()[0]
-print("Output:")
-print(gamelog_df[['GAME_DATE', 'MATCHUP', 'PTS', 'AST', 'REB', 'FG_PCT', 'FG3_PCT', 'FT_PCT']])
-season_pts_avg = gamelog_df['PTS'].mean()
-print(f"\n2024-25 Season Points Average: {season_pts_avg:.1f} PPG")
+#Get career stats(PTS, AST, REB, FG_PCT, PG3_PCT, FT_PCT)
+career_stats = playercareerstats.PlayerCareerStats(player_id=PLAYER_ID)
+career_df = career_stats.get_data_frames()[0]
+print(f"\nCareer Stats for {player}:")
+print(career_df.head())
+
+# CURRENT_SEASON = '2024-25'
+# gamelog = playergamelog.PlayerGameLog(
+#     player_id = PLAYER_ID, 
+#     season=CURRENT_SEASON
+# )
+# gamelog_df = gamelog.get_data_frames()[0]
+# print("Output:")
+# print(gamelog_df[['GAME_DATE', 'MATCHUP', 'PTS', 'AST', 'REB', 'FG_PCT', 'FG3_PCT', 'FT_PCT']])
+# season_pts_avg = gamelog_df['PTS'].mean()
+# print(f"\n2024-25 Season Points Average: {season_pts_avg:.1f} PPG")
