@@ -9,6 +9,7 @@ from nba_api.stats.endpoints import playergamelog
 from nba_api.stats.static import teams, players
 from nba_api.live.nba.endpoints import scoreboard
 from nba_api.live.nba.endpoints import boxscore
+from nba_api.stats.endpoints import playercareerstats
 
 
 #Get player from image
@@ -60,7 +61,7 @@ games_list = board_data.get('scoreboard', {}).get('games', [])
 # if GAME_ID is None:
 #     print(f"\nCould not find a live game today for the {playerteam}.")
 #     # Skip the boxscore and live stats logic
-#     player_stats_list = [] # Ensure this list is initialized to an empty list
+#     player_stats_list = []
 # else:
 #     live_box = boxscore.BoxScore(GAME_ID)
 #     box_data = live_box.get_dict()
@@ -73,8 +74,6 @@ games_list = board_data.get('scoreboard', {}).get('games', [])
 #     player_stats_list =[] # Reset/initialize list here
 #     for i in teamplayers:
 #         if i['name'] == player:
-#             # ... (rest of your player_stats_list append logic)
-#             # ... (the code for appending player stats is correct)
 #             player_stats_list.append({
 #                 'NAME': i['name'],
 #                 'MIN': i.get('statTotal', {}).get('minutes', 0),
@@ -88,8 +87,7 @@ games_list = board_data.get('scoreboard', {}).get('games', [])
 
 
 #Get stas from last game
-#NBA SEASON JUST STARTED SO STATS FROM LATEST GAME FOR 25-26 SEASON ARE NOT UPDATED
-CURRENT_SEASON = '2024-25'
+CURRENT_SEASON = '2025-26'
 gamelog = playergamelog.PlayerGameLog(
     player_id = PLAYER_ID, 
     season=CURRENT_SEASON
@@ -112,7 +110,13 @@ stats_to_show = {
 for key, value in stats_to_show.items():
     print(f"{key.ljust(15)}: {value}")
 
+CURRENT_SEASON = '2024-25'
+gamelog = playergamelog.PlayerGameLog(
+    player_id = PLAYER_ID, 
+    season=CURRENT_SEASON
+)
+gamelog_df = gamelog.get_data_frames()[0]
 print("Output:")
-print(gamelog_df[['GAME_DATE', 'MATCHUP', 'PTS', 'AST', 'REB', 'WL']])
+print(gamelog_df[['GAME_DATE', 'MATCHUP', 'PTS', 'AST', 'REB', 'FG_PCT', 'FG3_PCT', 'FT_PCT']])
 season_pts_avg = gamelog_df['PTS'].mean()
-print(f"\n2023-24 Season Points Average: {season_pts_avg:.1f} PPG")
+print(f"\n2024-25 Season Points Average: {season_pts_avg:.1f} PPG")
