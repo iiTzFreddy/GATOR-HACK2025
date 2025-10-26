@@ -1,8 +1,8 @@
-#Gemini API
+# Gemini API
 from google import genai
-#Pillow Libary
+# Pillow Libary
 from PIL import Image
-#NBA_API
+# NBA_API
 import time
 import pandas as pd
 from nba_api.stats.endpoints import playergamelog
@@ -10,118 +10,124 @@ from nba_api.stats.static import teams, players
 from nba_api.live.nba.endpoints import scoreboard
 from nba_api.live.nba.endpoints import boxscore
 from nba_api.stats.endpoints import playercareerstats
+from nba_api.stats.endpoints import commonplayerinfo
 
+client = genai.Client(api_key="AIzaSyA_UfVo8a95_t3gF38hkzg5F-thuCRws0o") 
+img_path = r"C:\Users\Typic\Desktop\GATORHACK2025\player2.jpg"
+CURRENT_SEASON = '2025-26'
+PLAYER_ID = None
 
-#Get player from image
-client = genai.Client(api_key="AIzaSyBVzUjYRJj5URDaFHxT2jpa7ZGm7IUiYFE")
-img_path = r"C:\Users\Typic\Desktop\GATORHACK2025\basketball_player2.webp"
-image = Image.open(img_path)
-#Ask Gemini who the player is
-PlayerResponse = client.models.generate_content(
-    model='gemini-2.5-flash',
-    contents= ["Only tell me who is in this image",image]
-)
-player = PlayerResponse.text
-#Ask Gemini what TEAM player is on
-TeamResponse = client.models.generate_content(
-    model='gemini-2.5-flash',
-    contents= [f"Only tell me the name of the team {player} plays for without the city"]
-)
-playerteam = TeamResponse.text
-#Get player id from NBA API
+print("--- Player Identification ---")
+try:
+    image = Image.open(img_path)
+    # Ask Gemini who the player is
+    PlayerResponse = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents= ["Only tell me who is in this image",image]
+    )
+    player = PlayerResponse.text
+except Exception as e:
+    print(f"Error calling Gemini API or opening image: {e}")
+    exit()
+
+# Get player id from NBA API
 nba_players = players.get_players()
 for i in nba_players:
     if i['full_name'] == player:
         PLAYER_ID = i['id']
         break
-#Get stats from NBA API
-board = scoreboard.ScoreBoard()
-board_data = board.get_dict()
-games_list = board_data.get('scoreboard', {}).get('games', [])
-#LIVE
-    #Get NBA API Game ID
-# GAME_ID = None
-# if not games_list:
-#     print("No games found for today.")
-# else:
-#     for game in games_list:
-#         home_team = game['homeTeam']['teamName']
-#         away_team = game['awayTeam']['teamName']
-#         if home_team == playerteam:
-#             GAME_ID = game['gameId']
-#             home_away = "home"
-#             print(GAME_ID)
-#         elif away_team == playerteam:
-#             GAME_ID = game['gameId']
-#             home_away = "away"
-#             print(GAME_ID)
+
+if PLAYER_ID is None:
+    print(f"Error: Player '{player}' not found in NBA database.")
+    exit() 
+print(f"Player Name: {player}")
+print(f"Player ID: {PLAYER_ID}")
 
 
-#     #Use boxscore
-# if GAME_ID is None:
-#     print(f"\nCould not find a live game today for the {playerteam}.")
-#     # Skip the boxscore and live stats logic
-#     player_stats_list = []
-# else:
-#     live_box = boxscore.BoxScore(GAME_ID)
-#     box_data = live_box.get_dict()
+# Find TEAM player is on
+player_info = commonplayerinfo.CommonPlayerInfo(player_id=PLAYER_ID)
+time.sleep(0.5) 
+player_dict = player_info.get_normalized_dict()
+player_team = {}
+if 'CommonPlayerInfo' in player_dict and player_dict['CommonPlayerInfo']:
+    info = player_dict['CommonPlayerInfo'][0]
+    team_id = info.get('TEAM_ID')
+    team_name = info.get('TEAM_NAME')
+    
+    if team_id is None or team_id == 0:
+        print("Player is currently not on an active roster.") 
+    
+    player_team = {
+        'team_id': team_id,
+        'team_name': team_name,
+    }
 
-#     if home_away == "home":
-#         teamplayers = box_data['game']['homeTeam']['players']
-#     elif home_away == "away":
-#         teamplayers = box_data['game']['awayTeam']['players']
+print(f"Player Team: {player_team['team_name']} (ID: {player_team['team_id']})")
 
-#     player_stats_list =[] # Reset/initialize list here
-#     for i in teamplayers:
-#         if i['name'] == player:
-#             player_stats_list.append({
-#                 'NAME': i['name'],
-#                 'MIN': i.get('statTotal', {}).get('minutes', 0),
-#                 'PTS': i.get('statTotal', {}).get('points', 0),
-#                 'REB': i.get('statTotal', {}).get('rebounds', 0),
-#                 'AST': i.get('statTotal', {}).get('assists', 0),
-#                 'FG_PCT': i.get('statTotal', {}).get('fgm', 0) / (i.get('statTotal', {}).get('fga', 1) or 1)
-#             })
-#print(player_stats_list)
-
-
-
-#Get stas from last game
-CURRENT_SEASON = '2025-26'
+# --- GET LATEST GAME STATS ---
+print("\n--- Last Game Stats ---")
 gamelog = playergamelog.PlayerGameLog(
     player_id = PLAYER_ID, 
     season=CURRENT_SEASON
 )
+time.sleep(0.5) 
 gamelog_df = gamelog.get_data_frames()[0]
-latest_game_stats = gamelog_df.iloc[0]
-stats_to_show = {
-    'Date': latest_game_stats['GAME_DATE'],
-    'Opponent': latest_game_stats['MATCHUP'],
-    'Result (W/L)': latest_game_stats['WL'],
-    'Minutes': latest_game_stats['MIN'],
-    'Points': latest_game_stats['PTS'],
-    'Rebounds': latest_game_stats['REB'],
-    'Assists': latest_game_stats['AST'],
-    'Steals': latest_game_stats['STL'],
-    'Blocks': latest_game_stats['BLK'],
-    'Turnovers': latest_game_stats['TOV']
-}
-for key, value in stats_to_show.items():
-     print(f"{key.ljust(15)}: {value}")
 
-#Get career stats(PTS, AST, REB, FG_PCT, PG3_PCT, FT_PCT)
-career_stats = playercareerstats.PlayerCareerStats(player_id=PLAYER_ID)
+if gamelog_df.empty:
+    print(f"No game logs found for the {CURRENT_SEASON} season.")
+else:
+    latest_game_stats = gamelog_df.iloc[0]
+    stats_to_show = {
+        'Date': latest_game_stats['GAME_DATE'],
+        'Opponent': latest_game_stats['MATCHUP'],
+        'Result (W/L)': latest_game_stats['WL'],
+        'Minutes': latest_game_stats['MIN'],
+        'Points': latest_game_stats['PTS'],
+        'Rebounds': latest_game_stats['REB'],
+        'Assists': latest_game_stats['AST'],
+    }
+    for key, value in stats_to_show.items():
+        print(f"{key}: {value}")
+
+
+# --- GET CAREER STATS---
+print("\n--- Career Averages ---")
+
+career_stats = playercareerstats.PlayerCareerStats(player_id=PLAYER_ID, per_mode36='PerGame')
+time.sleep(0.5) 
 career_df = career_stats.get_data_frames()[0]
-print(f"\nCareer Stats for {player}:")
-print(career_df.head())
 
-# CURRENT_SEASON = '2024-25'
-# gamelog = playergamelog.PlayerGameLog(
-#     player_id = PLAYER_ID, 
-#     season=CURRENT_SEASON
-# )
-# gamelog_df = gamelog.get_data_frames()[0]
-# print("Output:")
-# print(gamelog_df[['GAME_DATE', 'MATCHUP', 'PTS', 'AST', 'REB', 'FG_PCT', 'FG3_PCT', 'FT_PCT']])
-# season_pts_avg = gamelog_df['PTS'].mean()
-# print(f"\n2024-25 Season Points Average: {season_pts_avg:.1f} PPG")
+career_rows = career_df[career_df['SEASON_ID'] == 'Career']
+
+if not career_rows.empty:
+    career_row = career_rows.iloc[0]
+    avg_player_points = career_row['PTS']
+    avg_player_assists = career_row['AST']
+    avg_player_rebounds = career_row['REB']
+    avg_player_feild = career_row['FG_PCT']
+    avg_player_three = career_row['FG3_PCT']
+    avg_player_free = career_row['FT_PCT']
+    source = "Official Career Row"
+else:
+    season_df = career_df[career_df['SEASON_ID'] != 'Career'] 
+    
+    if season_df.empty:
+        print("Error: Could not retrieve any career season data.")
+        exit()
+
+    avg_player_points = season_df['PTS'].mean()
+    avg_player_assists = season_df['AST'].mean()
+    avg_player_rebounds = season_df['REB'].mean()
+    avg_player_feild = season_df['FG_PCT'].mean()
+    avg_player_three = season_df['FG3_PCT'].mean()
+    avg_player_free = season_df['FT_PCT'].mean()
+    source = "Calculated Average of Seasons"
+
+print(f"Source: {source}")
+print(f"Avg Career Stats for {player}:")
+print(f"Points: {avg_player_points:.1f}")
+print(f"Assits: {avg_player_assists:.1f}")
+print(f"Rebounds: {avg_player_rebounds:.1f}")
+print(f"Feild Goal %: {avg_player_feild:.3f}")
+print(f"Three %: {avg_player_three:.3f}")
+print(f"Free throw %: {avg_player_free:.3f}")
