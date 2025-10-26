@@ -1,3 +1,4 @@
+#Program only works if player has recently played a game
 # Gemini API
 from google import genai
 # Pillow Libary
@@ -13,7 +14,7 @@ from nba_api.stats.endpoints import playercareerstats
 from nba_api.stats.endpoints import commonplayerinfo
 
 client = genai.Client(api_key="AIzaSyA_UfVo8a95_t3gF38hkzg5F-thuCRws0o") 
-img_path = r"C:\Users\Typic\Desktop\GATORHACK2025\player2.jpg"
+img_path = r"C:\Users\Typic\Desktop\GATORHACK2025\basketball_player2.webp"
 CURRENT_SEASON = '2025-26'
 PLAYER_ID = None
 
@@ -46,7 +47,7 @@ print(f"Player ID: {PLAYER_ID}")
 
 # Find TEAM player is on
 player_info = commonplayerinfo.CommonPlayerInfo(player_id=PLAYER_ID)
-time.sleep(0.5) 
+time.sleep(0.5)
 player_dict = player_info.get_normalized_dict()
 player_team = {}
 if 'CommonPlayerInfo' in player_dict and player_dict['CommonPlayerInfo']:
@@ -72,6 +73,7 @@ gamelog = playergamelog.PlayerGameLog(
 )
 time.sleep(0.5) 
 gamelog_df = gamelog.get_data_frames()[0]
+print(gamelog_df)
 
 if gamelog_df.empty:
     print(f"No game logs found for the {CURRENT_SEASON} season.")
@@ -86,6 +88,9 @@ else:
         'Rebounds': latest_game_stats['REB'],
         'Assists': latest_game_stats['AST'],
     }
+
+
+
     for key, value in stats_to_show.items():
         print(f"{key}: {value}")
 
