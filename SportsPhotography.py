@@ -137,6 +137,20 @@ print(f"Feild Goal %: {season_stats["avg_player_feild"]}")
 print(f"Three %: {season_stats["avg_player_three"]}")
 print(f"Free throw %: {season_stats["avg_player_free"]}")
 
+#Storing Player stats for video file
+import json
+
+output_data = {
+    "player": player,
+    "PLAYER_ID": PLAYER_ID,
+    "team": player_team,
+    "game_stats": game_stats,
+    "season_stats": season_stats
+}
+
+with open("player_output.json", "w") as f:
+    json.dump(output_data, f)
+
 caption = client.models.generate_content(
         model='gemini-2.5-flash',
         contents= [f"Write a paragragh in the form of an instagram caption about what is going on in this image and comparing {season_stats} to {game_stats} ",image]
