@@ -118,26 +118,27 @@ else:
     if season_df.empty:
         print("Error: Could not retrieve any career season data.")
         exit()
-
-    avg_player_points = season_df['PTS'].mean()
-    avg_player_assists = season_df['AST'].mean()
-    avg_player_rebounds = season_df['REB'].mean()
-    avg_player_feild = season_df['FG_PCT'].mean()
-    avg_player_three = season_df['FG3_PCT'].mean()
-    avg_player_free = season_df['FT_PCT'].mean()
+    season_stats={}
+    season_stats["avg_player_points"] = season_df['PTS'].mean(),
+    season_stats["avg_player_assists"] = season_df['AST'].mean(),
+    season_stats["avg_player_rebounds"] = season_df['REB'].mean(),
+    season_stats["avg_player_feild"]= season_df['FG_PCT'].mean(),
+    season_stats["avg_player_three"] = season_df['FG3_PCT'].mean(),
+    season_stats["avg_player_free"] = season_df['FT_PCT'].mean()
+    
     source = "Calculated Average of Seasons"
 
 print(f"Source: {source}")
 print(f"Avg Career Stats for {player}:")
-print(f"Points: {avg_player_points:.1f}")
-print(f"Assits: {avg_player_assists:.1f}")
-print(f"Rebounds: {avg_player_rebounds:.1f}")
-print(f"Feild Goal %: {avg_player_feild:.3f}")
-print(f"Three %: {avg_player_three:.3f}")
-print(f"Free throw %: {avg_player_free:.3f}")
+print(f"Points: {season_stats["avg_player_points"]}")
+print(f"Assits: {season_stats["avg_player_assists"]}")
+print(f"Rebounds: {season_stats["avg_player_rebounds"]}")
+print(f"Feild Goal %: {season_stats["avg_player_feild"]}")
+print(f"Three %: {season_stats["avg_player_three"]}")
+print(f"Free throw %: {season_stats["avg_player_free"]}")
 
 caption = client.models.generate_content(
         model='gemini-2.5-flash',
-        contents= ["Write a paragragh in the form of an instagram caption about what is going on in this image and comparing career stats to ",image]
+        contents= [f"Write a paragragh in the form of an instagram caption about what is going on in this image and comparing {season_stats} to {game_stats} ",image]
     )
 print(caption.text)
