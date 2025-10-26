@@ -13,7 +13,9 @@ from nba_api.live.nba.endpoints import boxscore
 from nba_api.stats.endpoints import playercareerstats
 from nba_api.stats.endpoints import commonplayerinfo
 
-client = genai.Client(api_key="AIzaSyA_UfVo8a95_t3gF38hkzg5F-thuCRws0o") 
+my_API_key = "AIzaSyD-jnak65x-Wva2PdSVWCx9Vf3dJLjZjS8"
+
+client = genai.Client(api_key=my_API_key) 
 img_path = r"C:\Users\Typic\Desktop\GATORHACK2025\test.webp"
 CURRENT_SEASON = '2025-26'
 PLAYER_ID = None

@@ -5,10 +5,11 @@ import json
 import time
 import pandas as pd
 from google import genai
+from google.genai import types
 from nba_api.stats.endpoints import playergamelog, playercareerstats
-
+my_API_Key = "AIzaSyD-jnak65x-Wva2PdSVWCx9Vf3dJLjZjS8"
 #Initialize Gemini Client
-client = genai.Client(api_key="AIzaSyBVzUjYRJj5URDaFHxT2jpa7ZGm7IUiYFE")
+client = genai.Client(api_key= my_API_Key)
 
 #Load data exported by the first program
 with open("player_output.json", "r") as f:
@@ -71,45 +72,49 @@ prompt_response = client.models.generate_content(
         f"Output only the text that should be used as the Veo video prompt."
     ],
 )
-
+VEO_MODEL = 'veo-3.1-fast-generate-preview'
 veo_prompt = prompt_response.text
+OUTPUT_FILENAME = "generate_veo_video.mp4"
 
 print("\n--- Generated Veo Prompt ---")
 print(veo_prompt)
 
-#Mock of a successful video generation
 try:
-    video_path = f"{player.replace(' ', '_')}_highlight.mp4"
-    with open(video_path, "w") as f:
-        f.write(f"--- MOCK VEO VIDEO FILE ---\n")
-        f.write(f"Prompt: {veo_prompt}\n")
-        f.write(f"Simulated generation for player: {player}\n")
+    client = genai.Client(api_key= my_API_Key)
+except Exception as e:
+    print("Error initializing client. Is GEMINI_API_KEY environment variable set?")
+    print(e)
+    exit()
+print(f"Starting video generation with model: {VEO_MODEL}")
+print(f"Prompt: {veo_prompt}\n")
+try:
+    operation = client.models.generate_videos(
+        model=VEO_MODEL,
+        prompt=veo_prompt,
+        config=types.GenerateVideosConfig(
+            aspect_ratio="16:9",
+            duration_seconds=8
+        )
+    )
+    print(f"Video generation operation started: {operation.name}")
+    print("Waiting for video to be ready...")
+    while not operation.done:
+        time.sleep(15)  # Wait for 15 seconds before checking again
+        operation = client.operations.get(operation)
+        print(f"Status: {operation.metadata.state.name}")
+    print("\n--- Generation Complete! ---")
+    if operation.response and operation.response.generated_videos:
+        generated_video = operation.response.generated_videos[0]
         
-    print(f"\n[MOCK SUCCESS]: Veo generation was successfully simulated.")
-    print(f"Video placeholder saved as {video_path}")
-    print("When 'gemini-veo' is released, replace this mock block with the official SDK call.")
+        video_file = generated_video.video
+
+        video_file.save(OUTPUT_FILENAME)
+        
+        print(f"Successfully saved video to: {OUTPUT_FILENAME}")
+    else:
+        print("Error: Operation completed but no video was returned.")
+        print(f"Final status: {operation.error}")
 
 except Exception as e:
-    print(f"\n[Note] Error during mock video process: {e}")
+    print(f"An error occurred during video generation: {e}")
 
-#Since Google hasn't released the official SDK call yet, the video can't be generated
-# #Generate video with Gemini Veo
-# try:
-#     veo_video = client.models.generate_content(
-#         model="gemini-veo",
-#         contents=[veo_prompt],
-#     )
-
-#     # hypothetical field holding the video bytes
-#     video_bytes = veo_video.video
-#     video_path = f"{player.replace(' ', '_')}_highlight.mp4"
-#     with open(video_path, "wb") as f:
-#         f.write(video_bytes)
-
-#     print(f"\nVideo saved as {video_path}")
-
-# except Exception as e:
-#     print(
-#         "\n[Note] Veo video generation placeholder — replace with official Veo SDK call when available."
-#     )
-#     print(f"Error: {e}")
