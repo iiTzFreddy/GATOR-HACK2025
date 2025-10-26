@@ -14,7 +14,7 @@ from nba_api.stats.endpoints import playercareerstats
 from nba_api.stats.endpoints import commonplayerinfo
 
 client = genai.Client(api_key="AIzaSyA_UfVo8a95_t3gF38hkzg5F-thuCRws0o") 
-img_path = r"C:\Users\Typic\Desktop\GATORHACK2025\basketball_player2.webp"
+img_path = r"C:\Users\Typic\Desktop\GATORHACK2025\test.webp"
 CURRENT_SEASON = '2025-26'
 PLAYER_ID = None
 
@@ -24,7 +24,7 @@ try:
     # Ask Gemini who the player is
     PlayerResponse = client.models.generate_content(
         model='gemini-2.5-flash',
-        contents= ["Only tell me who is in this image",image]
+        contents= ["Only tell me who is the subject in this image",image]
     )
     player = PlayerResponse.text
 except Exception as e:
@@ -73,13 +73,12 @@ gamelog = playergamelog.PlayerGameLog(
 )
 time.sleep(0.5) 
 gamelog_df = gamelog.get_data_frames()[0]
-print(gamelog_df)
 
 if gamelog_df.empty:
     print(f"No game logs found for the {CURRENT_SEASON} season.")
 else:
     latest_game_stats = gamelog_df.iloc[0]
-    stats_to_show = {
+    game_stats = {
         'Date': latest_game_stats['GAME_DATE'],
         'Opponent': latest_game_stats['MATCHUP'],
         'Result (W/L)': latest_game_stats['WL'],
@@ -91,7 +90,7 @@ else:
 
 
 
-    for key, value in stats_to_show.items():
+    for key, value in game_stats.items():
         print(f"{key}: {value}")
 
 
@@ -136,3 +135,9 @@ print(f"Rebounds: {avg_player_rebounds:.1f}")
 print(f"Feild Goal %: {avg_player_feild:.3f}")
 print(f"Three %: {avg_player_three:.3f}")
 print(f"Free throw %: {avg_player_free:.3f}")
+
+caption = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents= ["Write a paragragh in the form of an instagram caption about what is going on in this image and comparing career stats to ",image]
+    )
+print(caption.text)
