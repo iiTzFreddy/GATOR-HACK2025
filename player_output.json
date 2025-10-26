@@ -1,1 +1,29 @@
-{"player": "Ja Morant", "PLAYER_ID": 1629630, "team": {"team_id": 1610612763, "team_name": "Grizzlies"}, "game_stats": {"Date": "Oct 25, 2025", "Opponent": "MEM vs. IND", "Result (W/L)": "W", "Minutes": 
+{
+    "player": "Ja Morant",
+    "PLAYER_ID": 1629630,
+    "CURRENT_SEASON": "2025-26",
+    "team": {
+        "team_id": 1610612763,
+        "team_name": "Grizzlies"
+    },
+    "latest_game_stats": {
+        "Date": "Oct 25, 2025",
+        "Opponent": "MEM vs. IND",
+        "Result (W/L)": "W",
+        "MIN": 27,
+        "PTS": 19,
+        "REB": 3,
+        "AST": 8,
+        "FG_PCT": 0.357,
+        "FG3_PCT": 0.0,
+        "FT_PCT": 1.0
+    },
+    "career_stats": {
+        "PTS": 22.97142857142857,
+        "AST": 7.228571428571429,
+        "REB": 4.557142857142858,
+        "FG_PCT": 0.4642857142857143,
+        "FG3_PCT": 0.2914285714285714,
+        "FT_PCT": 0.8002857142857142
+    }
+}

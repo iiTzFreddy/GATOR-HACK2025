@@ -101,16 +101,20 @@ career_stats = playercareerstats.PlayerCareerStats(player_id=PLAYER_ID, per_mode
 time.sleep(0.5) 
 career_df = career_stats.get_data_frames()[0]
 
+career_stats_dict = {}
+
 career_rows = career_df[career_df['SEASON_ID'] == 'Career']
 
 if not career_rows.empty:
     career_row = career_rows.iloc[0]
-    avg_player_points = career_row['PTS']
-    avg_player_assists = career_row['AST']
-    avg_player_rebounds = career_row['REB']
-    avg_player_feild = career_row['FG_PCT']
-    avg_player_three = career_row['FG3_PCT']
-    avg_player_free = career_row['FT_PCT']
+    career_stats_dict = {
+        'PTS': career_row['PTS'],
+        'AST': career_row['AST'],
+        'REB': career_row['REB'],
+        'FG_PCT': career_row['FG_PCT'],
+        'FG3_PCT': career_row['FG3_PCT'],
+        'FT_PCT': career_row['FT_PCT'],
+    }
     source = "Official Career Row"
 else:
     season_df = career_df[career_df['SEASON_ID'] != 'Career'] 
@@ -118,41 +122,62 @@ else:
     if season_df.empty:
         print("Error: Could not retrieve any career season data.")
         exit()
-    season_stats={}
-    season_stats["avg_player_points"] = season_df['PTS'].mean(),
-    season_stats["avg_player_assists"] = season_df['AST'].mean(),
-    season_stats["avg_player_rebounds"] = season_df['REB'].mean(),
-    season_stats["avg_player_feild"]= season_df['FG_PCT'].mean(),
-    season_stats["avg_player_three"] = season_df['FG3_PCT'].mean(),
-    season_stats["avg_player_free"] = season_df['FT_PCT'].mean()
+    career_stats_dict["PTS"] = season_df['PTS'].mean()
+    career_stats_dict["AST"] = season_df['AST'].mean()
+    career_stats_dict["REB"] = season_df['REB'].mean()
+    career_stats_dict["FG_PCT"] = season_df['FG_PCT'].mean()
+    career_stats_dict["FG3_PCT"] = season_df['FG3_PCT'].mean()
+    career_stats_dict["FT_PCT"] = season_df['FT_PCT'].mean()
     
     source = "Calculated Average of Seasons"
 
 print(f"Source: {source}")
 print(f"Avg Career Stats for {player}:")
-print(f"Points: {season_stats["avg_player_points"]}")
-print(f"Assits: {season_stats["avg_player_assists"]}")
-print(f"Rebounds: {season_stats["avg_player_rebounds"]}")
-print(f"Feild Goal %: {season_stats["avg_player_feild"]}")
-print(f"Three %: {season_stats["avg_player_three"]}")
-print(f"Free throw %: {season_stats["avg_player_free"]}")
+print(f"Points: {career_stats_dict['PTS']:.2f}")
+print(f"Assists: {career_stats_dict['AST']:.2f}")
+print(f"Rebounds: {career_stats_dict['REB']:.2f}")
+print(f"Feild Goal %: {career_stats_dict['FG_PCT']:.3f}")
+print(f"Three %: {career_stats_dict['FG3_PCT']:.3f}")
+print(f"Free throw %: {career_stats_dict['FT_PCT']:.3f}")
 
 #Storing Player stats for video file
 import json
 
+STAT_KEYS = ['PTS', 'REB', 'AST', 'FG_PCT', 'FG3_PCT', 'FT_PCT']
+
+
+game_stats_json = {
+    'Date': latest_game_stats['GAME_DATE'],
+    'Opponent': latest_game_stats['MATCHUP'],
+    'Result (W/L)': latest_game_stats['WL'],
+    'MIN': int(latest_game_stats['MIN']), 
+}
+
+for key in STAT_KEYS:
+    if key in ['PTS', 'REB', 'AST']:
+        game_stats_json[key] = int(latest_game_stats[key])
+    else:
+        game_stats_json[key] = float(latest_game_stats[key])
+
+
 output_data = {
     "player": player,
     "PLAYER_ID": PLAYER_ID,
+    "CURRENT_SEASON": CURRENT_SEASON,
     "team": player_team,
-    "game_stats": game_stats,
-    "season_stats": season_stats
+    "latest_game_stats": game_stats_json, 
+    "career_stats": career_stats_dict 
 }
 
 with open("player_output.json", "w") as f:
-    json.dump(output_data, f)
+    json.dump(output_data, f, indent=4)
 
 caption = client.models.generate_content(
         model='gemini-2.5-flash',
-        contents= [f"Write a paragragh in the form of an instagram caption about what is going on in this image and comparing {season_stats} to {game_stats} ",image]
+        contents= [f"Write a paragragh in the form of an instagram caption about what is going on in this image and comparing {career_stats_dict} to {game_stats} ",image]
     )
-print(caption.text)
+import sys
+try:
+    print(caption.text)
+except UnicodeEncodeError:
+    print(caption.text.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding))

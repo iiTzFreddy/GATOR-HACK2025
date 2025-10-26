@@ -17,9 +17,10 @@ with open("player_output.json", "r") as f:
 player = data["player"]
 PLAYER_ID = data["PLAYER_ID"]
 CURRENT_SEASON = data["CURRENT_SEASON"]
-latest_game_stats = pd.Series(data["latest_game_stats"])
-career_row = pd.Series(data["career_row"])
-print(f"--- Loaded data for {player} ---")
+latest_game_stats_dict = data["latest_game_stats"] 
+career_stats_dict = data["career_stats"] 
+latest_game_stats = pd.Series(latest_game_stats_dict)
+career_row = pd.Series(career_stats_dict)
 
 #Compare Last Game vs Career Averages
 stat_labels = {
@@ -76,24 +77,39 @@ veo_prompt = prompt_response.text
 print("\n--- Generated Veo Prompt ---")
 print(veo_prompt)
 
-#Generate video with Gemini Veo
+#Mock of a successful video generation
 try:
-    veo_video = client.models.generate_content(
-        model="gemini-veo",
-        contents=[veo_prompt],
-        generation_config={"output_type": "video", "duration": "10s"},
-    )
-
-    # hypothetical field holding the video bytes
-    video_bytes = veo_video.video
     video_path = f"{player.replace(' ', '_')}_highlight.mp4"
-    with open(video_path, "wb") as f:
-        f.write(video_bytes)
-
-    print(f"\nVideo saved as {video_path}")
+    with open(video_path, "w") as f:
+        f.write(f"--- MOCK VEO VIDEO FILE ---\n")
+        f.write(f"Prompt: {veo_prompt}\n")
+        f.write(f"Simulated generation for player: {player}\n")
+        
+    print(f"\n[MOCK SUCCESS]: Veo generation was successfully simulated.")
+    print(f"Video placeholder saved as {video_path}")
+    print("When 'gemini-veo' is released, replace this mock block with the official SDK call.")
 
 except Exception as e:
-    print(
-        "\n[Note] Veo video generation placeholder — replace with official Veo SDK call when available."
-    )
-    print(f"Error: {e}")
+    print(f"\n[Note] Error during mock video process: {e}")
+
+#Since Google hasn't released the official SDK call yet, the video can't be generated
+# #Generate video with Gemini Veo
+# try:
+#     veo_video = client.models.generate_content(
+#         model="gemini-veo",
+#         contents=[veo_prompt],
+#     )
+
+#     # hypothetical field holding the video bytes
+#     video_bytes = veo_video.video
+#     video_path = f"{player.replace(' ', '_')}_highlight.mp4"
+#     with open(video_path, "wb") as f:
+#         f.write(video_bytes)
+
+#     print(f"\nVideo saved as {video_path}")
+
+# except Exception as e:
+#     print(
+#         "\n[Note] Veo video generation placeholder — replace with official Veo SDK call when available."
+#     )
+#     print(f"Error: {e}")
